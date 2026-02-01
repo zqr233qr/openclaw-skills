@@ -43,35 +43,9 @@ claude
 # 6. Implement
 /opsx:apply
 
-# 7. Deploy to server (223.109.141.179:8080)
-/opsx:deploy
-
-# 8. Archive when done
+# 7. Archive when done
 /opsx:archive
 ```
-
-## Server Environment
-
-**Production Server**: `223.109.141.179:8080`
-
-**Deployment Method**:
-```bash
-# Deploy static site to server port 8080
-cd /root/.openclaw/workspace/your-project
-python3 -m http.server 8080
-
-# Or use pm2 for production
-pm2 start "python3 -m http.server 8080" --name "your-project"
-```
-
-**Development Pattern**:
-- All projects deployed to `223.109.141.179:8080`
-- Each project in `/root/.openclaw/workspace/` directory
-- Restart server after changes:
-  ```bash
-  pkill -f "http.server 8080"
-  python3 -m http.server 8080 &
-  ```
 
 ## Installation
 
@@ -136,20 +110,7 @@ Claude Code will:
 - Update tasks.md as completed
 - Report progress
 
-### Phase 4: Deploy
-```
-/opsx:deploy
-```
-
-Deploys to server `223.109.141.179:8080`:
-```bash
-# Updates running server
-pkill -f "http.server 8080"
-cd /root/.openclaw/workspace/your-project
-python3 -m http.server 8080 &
-```
-
-### Phase 5: Archive
+### Phase 4: Archive
 ```
 /opsx:archive
 ```
@@ -165,7 +126,6 @@ Moves completed change to `openspec/changes/archive/` for historical reference.
 | `/opsx:new <name>` | Create new change |
 | `/opsx:ff` | Fast-forward: generate all planning docs |
 | `/opsx:apply` | Implement tasks from tasks.md |
-| `/opsx:deploy` | Deploy to server (223.109.141.179:8080) |
 | `/opsx:archive` | Archive completed change |
 | `/opsx:continue` | Create next artifact in sequence |
 | `/opsx:sync` | Sync agent context with OpenSpec |
@@ -200,7 +160,6 @@ project/
 │       └── opsx/
 │           ├── apply.md
 │           ├── archive.md
-│           ├── deploy.md
 │           ├── ff.md
 │           ├── new.md
 │           └── ...
@@ -305,14 +264,18 @@ OpenSpec benefits from clean context:
 - Archive completed changes promptly
 - Monitor Claude Code context length
 
-### 5. Server Deployment
-- Always deploy to `223.109.141.179:8080`
-- Use `python3 -m http.server 8080` for static sites
-- Kill and restart server after changes
-- Verify with `curl http://localhost:8080`
-
-### 6. Verify Implementation
+### 5. Verify Implementation
 After `/opsx:apply`, use `/opsx:verify` to ensure implementation matches specs.
+
+### 6. Local Deployment
+For testing static sites locally:
+```bash
+# Simple HTTP server
+python3 -m http.server 8080
+
+# Or with Node.js
+npx serve .
+```
 
 ## Lessons Learned (X-Diary Project)
 
@@ -324,28 +287,27 @@ After `/opsx:apply`, use `/opsx:verify` to ensure implementation matches specs.
 5. `/opsx:new <name> -m "<desc>"`
 6. `/opsx:ff`
 7. `/opsx:apply`
-8. Deploy to server
-9. `/opsx:archive`
+8. `/opsx:archive`
 
 ### Common Pitfalls
 
 | Issue | Solution |
 |-------|----------|
 | OpenSpec in wrong directory | Always `cd` to project first |
-| Confusing OpenSpec vs Spec Kit | Use OpenSpec only (`/opsx:`) |
+| Confusing OpenSpec vs Spec Kit | Use OpenSpec only (`/opsx:` commands) |
 | Multiple tmux sessions | Name sessions clearly: `tmux new -s x-diary` |
 | File permission errors | `chmod 644 <file>` |
 | Tasks not updating | Manually check `tasks.md` |
-| Context overflow | Archive changes, use `--continue` |
+| Context overflow | Archive changes, use `claude --continue` |
 | Server offline | Restart: `python3 -m http.server 8080 &` |
 | SVG vs PNG icons | SVG preferred for PWA (lossless, scalable) |
 
 ### Tmux Commands
 ```bash
-tmux new -s <name>        # Create session
-tmux ls                   # List sessions
-tmux attach -t <name>     # Attach to session
-Ctrl+B, D                 # Detach from session
+tmux new -s <name>           # Create session
+tmux ls                      # List sessions
+tmux attach -t <name>        # Attach to session
+Ctrl+B, D                    # Detach from session
 tmux kill-session -t <name>  # Delete session
 ```
 
@@ -374,47 +336,12 @@ claude
 # Claude Code implements all tasks
 # Updates tasks.md as completed
 
-# Deploy to server
-/opsx:deploy
-
 # Archive
 /opsx:archive
 
 # Start next feature
 /opsx:new add-profile-page -m "Create user profile page with avatar upload"
 ```
-
-## Server Deployment
-
-### Quick Deploy
-```bash
-# Kill existing server
-pkill -f "http.server 8080"
-
-# Start new server
-cd /root/.openclaw/workspace/your-project
-python3 -m http.server 8080 &
-
-# Verify
-curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/
-# Should output: 200
-```
-
-### Using PM2 (Production)
-```bash
-# Install pm2
-npm install -g pm2
-
-# Start service
-pm2 start "python3 -m http.server 8080" --name "your-project"
-
-# Restart after changes
-pm2 restart your-project
-```
-
-### Access
-- **URL**: http://223.109.141.179:8080
-- **Server**: SSH access for management
 
 ## Comparison: OpenSpec vs Spec Kit
 
@@ -426,7 +353,6 @@ pm2 restart your-project
 | CLI | `openspec` | `specify` |
 | AI support | 20+ tools | Primarily Claude |
 | Workflow speed | Fast (one command) | Slower (step-by-step) |
-| Deployment | Server-focused | Generic |
 
 ## See Also
 
@@ -436,8 +362,8 @@ pm2 restart your-project
 
 ## Key Reminders
 
-1. **Server IP**: `223.109.141.179`
-2. **Port**: `8080`
-3. **Project Directory**: `/root/.openclaw/workspace/`
-4. **Session Management**: Use tmux
-5. **Always deploy** before archiving
+1. **Always `cd` to project directory** before initializing OpenSpec
+2. **Use tmux** for session management when working on multiple projects
+3. **Review docs** before running `/opsx:apply`
+4. **Archive changes** promptly to keep context clean
+5. **Deploy locally** for testing: `python3 -m http.server 8080`
